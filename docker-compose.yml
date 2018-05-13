@@ -1,0 +1,41 @@
+version: '3.4'
+
+services:
+
+  # REF: https://hub.docker.com/r/rasa/rasa_nlu/
+  rasa:
+    image: rasa/rasa_nlu:latest-full
+    hostname: 'rasa'
+    ports:
+      - mode: host
+        target: 5000
+        published: 5000
+        protocol: tcp
+    networks:
+      - rasa-net1
+    volumes:
+      - type: bind
+        source: /opt/rasa/data
+        target: /app/data
+      - type: bind
+        source: /opt/rasa/logs
+        target: /app/logs
+      - type: bind
+        source: /opt/rasa/projects
+        target: /app/projects
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://rasa:5000/status"]
+      interval: 2m30s
+      timeout: 10s
+      retries: 3
+    stop_grace_period: 1m30s
+    deploy:
+      placement:
+        constraints:
+          - node.labels.swarm.node == 1
+      labels:
+        local.description: "RASA_NLU"
+
+networks:
+  rasa-net1:
+
